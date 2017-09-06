@@ -130,10 +130,10 @@ def load_graph(filename):
      graph_def.ParseFromString(f.read()) 
      tf.import_graph_def(graph_def, name='') 
  
-def image_process(image_data,mean = 128,std = 128):
+def image_process(sess,image_data,mean = 128,std = 128):
     #liadiyuan add:以下内容均获取自retrain.py 的预处理代码可以参考那边代码
-    with tf.Session() as sess:
-        if FLAGS.model=='mobilename':
+    #2017/9/6 modify：add session param
+     if FLAGS.model=='mobilename':
          jpeg_data = tf.placeholder(tf.string, name='DecodeJPGInput')
          decoded_image = tf.image.decode_jpeg(jpeg_data, channels=3)
          decoded_image_as_float = tf.cast(decoded_image, dtype=tf.float32)
@@ -152,7 +152,7 @@ def image_process(image_data,mean = 128,std = 128):
          preprocessed = tf.multiply(offset_image, 1.0 / std)
          '''图像样本零均值，方差归一化？'''
          return sess.run(preprocessed,{jpeg_data:image_data})
-        else:
+     else:
          return image_data
 def countCataNumber(tlist,labelindex):
     #该函数用于统计各类数量
@@ -302,7 +302,7 @@ def run_graph(image_dir_list, labels, input_layer_name, output_layer_name,
      #mul_image = tf.multiply(offset_image, 1.0 / input_std)
      clresult = {}
      for image_dir in image_dir_list:
-      decoded_image=image_process(tf.gfile.FastGFile(image_dir, 'rb').read())
+      decoded_image=image_process(sess,tf.gfile.FastGFile(image_dir, 'rb').read())
       softmax_tensor = sess.graph.get_tensor_by_name(output_layer_name)
       predictions, = sess.run(softmax_tensor, {input_layer_name: decoded_image})
       #imagefilename=image_dir.split('//')[1]
